@@ -1,4 +1,4 @@
-Sistema de Detección de Espacios Libres y Ocupados en Estacionamientos mediante Visión Artificial
+# Sistema de Detección de Espacios Libres y Ocupados en Estacionamientos mediante Visión Artificial
 
 ## 1. Presentación del Proyecto (Resumen Ejecutivo)
 
@@ -195,4 +195,3 @@ Prototipo educativo. Ajustar antes de uso productivo (validación legal de cáma
 
 ---
 
-Si necesitas versión resumida para diapositivas, puedo generar un extracto adicional.
