@@ -1,0 +1,9 @@
+numpy==1.26.4
+opencv-python==4.12.0.88
+scikit-image==0.20.0
+scikit-learn==1.2.2
+joblib==1.2.0
+matplotlib==3.7.0
+pillow==9.5.0
+flet==0.22.0
+
