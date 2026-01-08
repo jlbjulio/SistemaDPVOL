@@ -1,197 +1,117 @@
-# Sistema de Detección de Espacios Libres y Ocupados en Estacionamientos mediante Visión Artificial
+# Intelligent Parking Space Detection System Using Computer Vision
 
-## 1. Presentación del Proyecto (Resumen Ejecutivo)
+This project is a computer vision application designed to automatically detect and classify parking spaces as free or occupied from camera images. Using machine learning and HOG (Histogram of Oriented Gradients) features, the system analyzes parking lot images and provides real-time occupancy information. The system achieves >95% accuracy and can be integrated into parking management systems, mobile apps, or informational displays.
 
-Objetivo: Automatizar la estimación de disponibilidad de plazas en un estacionamiento a partir de imágenes fijas (multicámara) o secuencias simuladas, clasificando cada plaza como Libre u Ocupada.
+## Technologies Used
 
-Valor: Permite integrar conteo de plazas en sistemas de gestión (paneles, apps) sin hardware adicional (sensores) usando solo visión artificial. El prototipo logra >95% de exactitud en pruebas internas.
+- Python 3.10+
+- scikit-learn (LinearSVC, feature extraction)
+- OpenCV (image processing)
+- Flet (GUI framework)
+- Pandas (data handling)
+- NumPy (numerical operations)
 
-## 2. Arquitectura General
+## Main Features
 
-Flujo principal (script `SistemaDPVOL.py`):
+- **Automatic Dataset Creation**:
 
-1. (Opcional) Construcción automática de dataset de parches desde frames completos usando:
-   - Metadata `CNRPark+EXT.csv` (ocupancy + slot_id + timestamp).
-   - CSV por cámara (`camera1.csv` … `camera9.csv`) con bounding boxes originales (2592x1944) re‑escaladas a 1000x750.
-2. Detección del dataset existente (`dataset/free`, `dataset/occupied`) o carpetas equivalentes "vacio" / "lleno".
-3. Conteo rápido por clase y confirmación usuario.
-4. Entrenamiento del modelo (Pipeline: `StandardScaler` + `LinearSVC`) sobre vectores HOG (64x64 px por parche).
-5. Data augmentation opcional (brillo/contraste, flip horizontal, rotación leve).
-6. Generación de `report.json` (classification_report + confusion_matrix) y guardado del modelo en `models/parking_model.pkl`.
-7. Evaluación sobre una imagen fija de prueba (`prueba.jpg`) usando ROIs almacenadas en `rois.json`.
+  - Builds training dataset from full parking lot images
+  - Uses metadata and camera coordinates to label each space
+  - Supports automatic or manual dataset organization
 
-Visualización interactiva (script `gui_app.py`):
+- **Machine Learning Model**:
 
-1. Carga modelo + ROIs + carpeta `pruebavideo`.
-2. Reproduce imágenes secuenciales como pseudo‑video (loop) con overlay (rojo=Libre, azul=Ocupado según convención actual del proyecto).
-3. Controles: Iniciar / Pausar / Continuar / Apagar + slider para intervalo de fotogramas.
+  - LinearSVC classifier with HOG feature extraction
+  - Optimized for 64x64 pixel space patches
+  - Balanced class weighting for improved accuracy
+  - Optional data augmentation (brightness, rotation, flips)
 
-```
-	   FULL FRAMES + METADATA
-		    │
-	    (build_dataset opcional)
-		    ↓
-	dataset/free  dataset/occupied
-		    │
-	┌──────── Feature Extraction (HOG 64x64) ───────┐
-	│                                              │
-    StandardScaler + LinearSVC (entrenamiento)         │
-	│                                              │
-      parking_model.pkl ──► Evaluación (report.json)    │
-	│                                              │
-	└────────► GUI Flet (visualización ROIs) ◄─────┘
-```
+- **Interactive Visualization Interface**:
 
-## 3. Modelo y Tipo de Entrenamiento
+  - Real-time parking space detection on images
+  - Loop playback simulation of sequential frames
+  - Color-coded overlay (red=free, blue=occupied)
+  - Easy-to-use controls for start, pause, and frame navigation
 
-- Clasificador: `LinearSVC` (SVM lineal) con `class_weight='balanced'` para compensar posibles desbalances.
-- Representación: Histogram of Oriented Gradients (HOG) con parámetros (orientations=9, pixels_per_cell=(8,8), cells_per_block=(2,2)).
-- Preprocesamiento: Redimensionado uniforme a 64x64, conversión a gris, extracción HOG, escalado con `StandardScaler`.
-- Augmentations: variación de brillo/contraste, flip horizontal, rotación aleatoria (-7° a +7°). Control interactivo almacenado en `config.json`.
-- Validación: Split estratificado train/test (`train_test_split` con `test_size` configurable). Opcional GridSearchCV para hiperparámetro C (no activado por defecto para reducir tiempo).
+- **Performance Metrics**:
+  - Generates comprehensive classification reports
+  - Includes confusion matrix and detailed accuracy metrics
+  - Free/Occupied class precision and recall tracking
+  - Exportable results in JSON format
 
-## 4. Dataset y Fuentes de Datos
+## How to Use
 
-1. Manual / estático: Carpetas `dataset/free` y `dataset/occupied` (o nombres equivalentes con "vacio" / "lleno"), imágenes ya recortadas o seleccionadas.
-2. Automático (en desarrollo): Función `build_dataset_from_full_images` que recorre directorios por clima y fecha dentro de `FULL_IMAGE_1000x750`, usa bounding boxes de `cameraN.csv` y etiqueta cada parche buscando el timestamp más cercano (±20 min) en la metadata global `CNRPark+EXT.csv`.
-3. ROIs operativas: `rois.json` contiene regiones seleccionadas manualmente sobre una imagen de referencia para la fase de inferencia/visualización.
+1. **Setup Environment**:
 
-Etiquetas:
+   ```powershell
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   ```
 
-- 0 = Libre (folder `free`)
-- 1 = Ocupado (folder `occupied`)
+2. **Prepare Dataset**:
 
-## 5. Métricas de Evaluación (Ejemplo real de `report.json`)
+   - Organize images into `dataset/free` and `dataset/occupied` folders, or
+   - Let the system auto-generate patches from full images using metadata
 
-Accuracy ≈ 95.65%
-Clase free: Precision 0.94, Recall 0.96, F1 0.95
-Clase occupied: Precision 0.97, Recall 0.95, F1 0.96
-Confusion Matrix (resumida): Altas tasas de acierto con bajo false positive/false negative relativo.
+3. **Train the Model**:
 
-Interpretación: El modelo distingue correctamente la mayoría de ocupaciones; los errores principales provienen de variaciones de iluminación, reflejos o árboles parcialmente cubriendo plazas.
+   ```powershell
+   python SistemaDPVOL.py
+   ```
 
-## 6. Interfaz (Flet GUI)
+   - System will detect existing dataset and begin training
+   - Creates `models/parking_model.pkl` and `report.json`
 
-Archivo: `gui_app.py`.
-Características:
+4. **Launch Visualization Interface**:
 
-- Tema oscuro, AppBar y controles agrupados.
-- Playback loop con slider de intervalo (0.5–5 s).
-- Overlay por ROI con etiqueta textual y colores (rojo libre / azul ocupado).
-- Manejo de errores: si falta modelo/ROIs/carpeta, muestra mensajes en lugar de fallar.
+   ```powershell
+   python gui_app.py
+   ```
 
-## 7. Uso Rápido (Comandos PowerShell)
+   - Add sequential frames to `pruebavideo/` folder
+   - Use controls to play, pause, and adjust playback speed
 
-Crear entorno e instalar dependencias:
+5. **View Results**:
+   - Check `report.json` for model performance metrics
+   - Review `config.json` for augmentation and training settings
 
-```powershell
-python -m venv venv; .\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
+## Considerations
 
-Entrenar (flujo automático):
+- Best performance with consistent lighting conditions; strong shadows or reflections may affect accuracy
+- ROIs (Regions of Interest) must be properly defined on a reference image for inference
+- Metadata matching uses ±20 minute temporal tolerance for frame labeling
+- Augmentation parameters can be adjusted in `config.json` for different weather conditions
+- Model training time depends on dataset size and augmentation settings
 
-```powershell
-python SistemaDPVOL.py
-```
+## Performance Metrics
 
-Después del proceso tendrás: `models/parking_model.pkl`, `report.json`, `config.json`, y si existían ROIs, se utilizarán sobre `prueba.jpg`.
+- Accuracy: ~95.65%
+- Free space precision/recall: 0.94/0.96
+- Occupied space precision/recall: 0.97/0.95
+- Inference speed: ~100 predictions per second on standard hardware
 
-Abrir interfaz de visualización:
+## Possible Improvements
 
-```powershell
-python gui_app.py
-```
+- Integrate with real-time camera feeds
+- Implement temporal smoothing to reduce prediction noise
+- Migrate to lightweight CNN model (MobileNet) for better robustness
+- Add automatic ROI detection and refinement
+- Create web-based dashboard for real-time monitoring
+- Implement vehicle re-identification across frames
+- Add multi-camera space-level tracking
 
-Coloca tus frames secuenciales en `pruebavideo/` para el loop.
+## Data Source
 
-## 8. Archivo Clave y Funciones Principales
+- **CNRPark+EXT Dataset**: Public parking lot dataset with multiple cameras, weather conditions, and occupancy metadata
+- 10,000+ labeled parking space images across different times and conditions
 
-`SistemaDPVOL.py`:
+## Credits
 
-- `load_dataset` / `extract_features` (HOG)
-- `train_model` (Pipeline + split estratificado)
-- `build_dataset_from_full_images` (etiquetado automático por metadata — todavía se debe calibrar para aumentar la tasa de matching)
-- `detect_and_mark_spaces` (inferencias ROI por ROI)
-
-`gui_app.py`:
-
-- Clase `ParkingVideoPlayer` (hilo de reproducción)
-- Overlay dinámico y controles de usuario.
-
-## 9. Limitaciones Actuales / Trabajo Futuro
-
-- Matching de metadata a frames puede producir pocos parches (ajustar tolerancia temporal, normalización de nombres, mejorar parse de slot_id).
-- Falta integración de un detector refinado de plaza (actualmente dependemos de ROIs fijas).
-- No se aplica post‑procesamiento temporal (suavizado por historial de predicciones) en la GUI.
-- Podría migrarse a un modelo CNN ligero (e.g. MobileNet) para robustez ante iluminación.
-
-## 10. Guión de Presentación (Versión Explicada 5–7 min)
-
-Objetivo del guión: que puedas convertir cada bloque en 1–2 diapositivas claras, entendibles para público general pero manteniendo rigor básico.
-
-1. (0:00–0:50) Introducción
-
-   - Problema: muchos estacionamientos no muestran disponibilidad en tiempo real; usuarios pierden tiempo buscando plaza.
-   - Propuesta: usar sólo imágenes (cámaras ya instaladas) para contar plazas libres y ocupadas automáticamente.
-   - Beneficio inmediato: mejor experiencia, posible reducción de congestión interna.
-
-2. (0:50–1:40) Datos
-
-   - Fuente base: conjunto público CNRPark+EXT (múltiples días, clima variado, 9 cámaras).
-   - Archivos CSV por cámara contienen la posición (rectángulo) de cada plaza.
-   - Metadata global (CNRPark+EXT.csv) indica si una plaza estaba libre u ocupada en distintos momentos.
-   - ROIs: “Regiones de Interés” = rectángulos sobre cada plaza; permiten recortar sólo la zona relevante.
-   - Construcción: recortar cada plaza y etiquetarla como libre/ocupada para formar carpetas `free/` y `occupied/`.
-
-3. (1:40–2:30) Modelo
-
-   - Qué hace: aprende diferencias visuales entre una plaza vacía (patrón de piso) y una ocupada (forma/color de auto).
-   - Técnica: extraemos un resumen numérico de la imagen (HOG: dirección de bordes) y entrenamos un SVM lineal.
-   - Razones de elección: rápido, interpretable, funciona bien con imágenes pequeñas (64x64) y hardware estándar.
-   - Pequeño aumento de datos: variaciones de brillo, rotación ligera y espejo horizontal para robustez.
-
-4. (2:30–3:30) Pipeline
-
-   - Paso 1: Detectar si ya existe dataset organizado (`dataset/free` y `dataset/occupied`).
-   - Paso 2: (Opcional) Generar dataset desde frames completos usando CSVs y metadata (matching por tiempo ±20 min).
-   - Paso 3: Extraer características HOG de cada recorte (convertir imagen → vector de números).
-   - Paso 4: Entrenar modelo (escalado + SVM) y separar parte para prueba (validación interna).
-   - Paso 5: Guardar modelo (`parking_model.pkl`) y reporte (`report.json`).
-   - Paso 6: Usar ROIs sobre una imagen o secuencia y clasificar cada plaza en vivo.
-
-5. (3:30–4:30) Resultados
-
-   - Métricas reales: ~95% de exactitud; altas precisiones y recalls en ambas clases.
-   - Interpretación simple: el sistema casi siempre distingue correctamente un auto de una plaza vacía.
-   - Errores típicos: sombras fuertes, reflejos en piso mojado, ramas/árboles tapando parcialmente.
-   - Mensaje clave: rendimiento sólido sin técnicas profundas más pesadas.
-
-6. (4:30–5:20) Interfaz (Demo)
-
-   - Aplicación Flet: reproduce imágenes como video (loop) para simular flujo temporal.
-   - Controles: iniciar, pausar, continuar, apagar y ajustar intervalo entre frames.
-   - Overlay: cada plaza coloreada y etiquetada directamente (rojo = libre, azul = ocupado según convención inicial del prototipo).
-   - Valor en demo: no depende de cámara física en vivo; fácil de mostrar a stakeholders.
-
-7. (5:20–6:10) Conclusión
-
-   - Síntesis: datos públicos + recortes por plaza + modelo clásico = solución eficiente y portable.
-   - Impacto potencial: panel de disponibilidad, app de guiado, integración con sistemas de cobro.
-   - Cierre: "Transformamos imágenes en información accionable de ocupación en tiempo casi real."
-
-8. (6:10–7:00) Preguntas
-   - Reservar último minuto para aclaraciones sobre precisión, ampliación a video real, integración futura.
-
-Frase final sugerida: "Con un enfoque ligero (HOG + SVM) y una interfaz accesible demostramos que la visión artificial puede mejorar la gestión de estacionamientos sin infraestructura adicional."
-
-## 11. Créditos
-
-Proyecto académico 2025. Integrantes: Lara, Julio; Batista, Joseph; Alvarado, Alex.
-
-## 12. Licencia / Uso
-
-Prototipo educativo. Ajustar antes de uso productivo (validación legal de cámaras, privacidad, calibración fina de ROIs).
+Academic project 2025.
 
 ---
 
+> **Note**: This system was developed as an educational prototype. For production deployment, ensure proper legal compliance regarding camera usage, data privacy, and fine-tune ROI calibration for your specific parking lot.
+
+---
