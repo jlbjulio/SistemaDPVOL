@@ -108,6 +108,6 @@ This project is a computer vision application designed to automatically detect a
 
 ---
 
-> **Note**: This system was developed as an educational prototype. For production deployment, ensure proper legal compliance regarding camera usage, data privacy, and fine-tune ROI calibration for your specific parking lot.
+> **Note**: This project was originally developed in Spanish. The README is written in English for documentation and sharing purposes..
 
 ---
