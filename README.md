@@ -106,10 +106,6 @@ This project is a computer vision application designed to automatically detect a
 - **CNRPark+EXT Dataset**: Public parking lot dataset with multiple cameras, weather conditions, and occupancy metadata
 - 10,000+ labeled parking space images across different times and conditions
 
-## Credits
-
-Academic project 2025.
-
 ---
 
 > **Note**: This system was developed as an educational prototype. For production deployment, ensure proper legal compliance regarding camera usage, data privacy, and fine-tune ROI calibration for your specific parking lot.
