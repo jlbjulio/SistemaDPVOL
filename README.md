@@ -76,13 +76,6 @@ This project is a computer vision application designed to automatically detect a
    - Check `report.json` for model performance metrics
    - Review `config.json` for augmentation and training settings
 
-## Considerations
-
-- Best performance with consistent lighting conditions; strong shadows or reflections may affect accuracy
-- ROIs (Regions of Interest) must be properly defined on a reference image for inference
-- Metadata matching uses ±20 minute temporal tolerance for frame labeling
-- Augmentation parameters can be adjusted in `config.json` for different weather conditions
-- Model training time depends on dataset size and augmentation settings
 
 ## Performance Metrics
 
@@ -90,16 +83,6 @@ This project is a computer vision application designed to automatically detect a
 - Free space precision/recall: 0.94/0.96
 - Occupied space precision/recall: 0.97/0.95
 - Inference speed: ~100 predictions per second on standard hardware
-
-## Possible Improvements
-
-- Integrate with real-time camera feeds
-- Implement temporal smoothing to reduce prediction noise
-- Migrate to lightweight CNN model (MobileNet) for better robustness
-- Add automatic ROI detection and refinement
-- Create web-based dashboard for real-time monitoring
-- Implement vehicle re-identification across frames
-- Add multi-camera space-level tracking
 
 ## Data Source
 
